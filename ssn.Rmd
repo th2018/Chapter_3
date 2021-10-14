@@ -1,0 +1,36 @@
+---
+title: "ssn"
+author: "Tao"
+date: "10/14/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+#install.packages('SSN')
+library(SSN)
+```
+
+```{r}
+#for examples, copy MiddleFork04.ssn directory to R's temporary directory
+copyLSN2temp()
+getwd()
+setwd(tempdir())
+getwd()
+```
+
+```{r}
+# Create a SpatialStreamNetork object that also contains prediction sites
+mf04p <- importSSN(paste0(tempdir(),'/MiddleFork04.ssn'), predpts = "pred1km", o.write = TRUE)
+mf04p
+head(mf04p@data)
+mf04p@obspoints
+
+```
+
+```{r}
+#use mf04p SpatialStreamNetwork object, already created
+data(mf04p)
+```
+
