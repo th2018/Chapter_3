@@ -1,0 +1,56 @@
+---
+title: "dry_creek_T"
+author: "Tao Huang"
+date: "10/27/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library("tidyverse")
+getwd()
+```
+
+```{r}
+url="https://icewater.boisestate.edu/boisefront-products/historical/dcew_C1W/StreamHourlyData/C1W_StreamHrlySummary_2009.csv"
+destfile="/Users/owner/Downloads/C1W_StreamHrlySummary_2009.csv"
+download.file(url, destfile)
+```
+
+```{r}
+f<-read.csv(destfile)
+f2<-f[c(18:dim(f)[1]),c(1:4)]
+f2[1,]
+colnames(f2 )<-unlist(f2[1,])
+#colnames(f2 )<-as.character(f2[1,])
+f2<-f2[-1,]
+f2$DateTime<-as.character(f2$DateTime)
+f2$DateTime<-as.POSIXct(f2$DateTime, format="%m/%d/%y %H:%M")
+f2$DateTime
+f2$`Discharge-L/s`<-as.numeric(as.character(f2$`Discharge-L/s`))
+f2$`StreamTemp-C` <-as.numeric(as.character(f2$`StreamTemp-C`))
+head(f2)
+summary(f2)
+```
+
+#summer
+```{r}
+f_summer<-f2[f2$DateTime>=as.POSIXct("2009-06-01") & f2$DateTime<=as.POSIXct("2009-08-31") & !is.na(f2$DateTime) &f2$`Discharge-L/s`>0  ,]
+head(f_summer)
+summary(f_summer)
+
+
+```
+
+```{r}
+plot(f_summer$`Discharge-L/s`,f_summer$`StreamTemp-C`)
+```
+
+```{r}
+p <- ggplot(f_summer, aes(`Discharge-L/s` , `StreamTemp-C` ))
+p + geom_point()
+```
+
+
+
