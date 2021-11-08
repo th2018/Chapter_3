@@ -1,5 +1,5 @@
 ---
-title: "dry_creek_T"
+title: "Dry_Creek_T"
 author: "Tao Huang"
 date: "10/27/2021"
 output:
@@ -7,18 +7,21 @@ output:
   html_document: default
 ---
 
+# The 'tidyverse' is a set of packages.
 ```{r}
 library("tidyverse")
 getwd()
 ```
 
 ```{r}
-url="https://icewater.boisestate.edu/boisefront-products/historical/dcew_C1W/StreamHourlyData/C1W_StreamHrlySummary_2009.csv"
-destfile="/Users/owner/Downloads/C1W_StreamHrlySummary_2009.csv"
+year="2010"
+url=paste("https://icewater.boisestate.edu/boisefront-products/historical/dcew_C1W/StreamHourlyData/C1W_StreamHrlySummary_",year,".csv",sep="")
+destfile="/Users/owner/Downloads/C1W_StreamHrlySummary_2010.csv"
 download.file(url, destfile)
 ```
 
 ```{r}
+#read data
 f<-read.csv(destfile)
 f2<-f[c(18:dim(f)[1]),c(1:4)]
 f2[1,]
@@ -34,15 +37,15 @@ head(f2)
 summary(f2)
 ```
 
-#summer
+# Focus on summers
 ```{r}
 f_summer<-f2[f2$DateTime>=as.POSIXct("2009-06-01") & f2$DateTime<=as.POSIXct("2009-08-31") & !is.na(f2$DateTime) &f2$`Discharge-L/s`>0  ,]
 head(f_summer)
 summary(f_summer)
 
-
 ```
 
+# Plot T vs. Q
 ```{r}
 plot(f_summer$`Discharge-L/s`,f_summer$`StreamTemp-C`)
 ```
@@ -51,6 +54,3 @@ plot(f_summer$`Discharge-L/s`,f_summer$`StreamTemp-C`)
 p <- ggplot(f_summer, aes(`Discharge-L/s` , `StreamTemp-C` ))
 p + geom_point()
 ```
-
-
-
