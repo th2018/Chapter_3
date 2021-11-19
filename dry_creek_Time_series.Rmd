@@ -1,0 +1,81 @@
+---
+title: "Dry_Creek_T"
+author: "Tao Huang"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# The 'tidyverse' is a set of packages.
+```{r}
+library("tidyverse")
+getwd()
+```
+
+# Download data for multiple years
+```{r}
+yr=c(2014,2015)
+for (year in yr) {
+url=paste("https://icewater.boisestate.edu/boisefront-products/historical/dcew_C1W/StreamHourlyData/C1W_StreamHrlySummary_",year,".csv",sep="")
+destfile=paste("/Users/owner/Downloads/C1W_StreamHrlySummary_",year,".csv",sep="")
+download.file(url, destfile)
+}
+```
+
+
+```{r}
+df<-data.frame(DateTime=as.POSIXct("2000-01-01 00:00:00"), Discharge=0, StreamTemp=0, StreamEC=as.factor(0)
+)
+for (year in yr) {
+destfile=paste("/Users/owner/Downloads/C1W_StreamHrlySummary_",year,".csv",sep="")
+#read data
+f<-read.csv(destfile)
+f2<-f[c(18:dim(f)[1]),c(1:4)]
+f2[1,]
+colnames(f2 )<-unlist(f2[1,])
+#colnames(f2 )<-as.character(f2[1,])
+f2<-f2[-1,]
+f2$DateTime<-as.character(f2$DateTime)
+f2$DateTime<-as.POSIXct(f2$DateTime, format="%m/%d/%y %H:%M")
+f2$DateTime
+f2$`Discharge-L/s`<-as.numeric(as.character(f2$`Discharge-L/s`))
+f2$`StreamTemp-C` <-as.numeric(as.character(f2$`StreamTemp-C`))
+colnames(f2<-c("DateTime" ,  "Discharge" , "StreamTemp", "StreamEC"))
+df<-rbind(f2,df)
+}
+head(df)
+```
+
+
+```{r}
+#read data
+f<-read.csv(destfile)
+f2<-f[c(18:dim(f)[1]),c(1:4)]
+f2[1,]
+colnames(f2 )<-unlist(f2[1,])
+#colnames(f2 )<-as.character(f2[1,])
+f2<-f2[-1,]
+f2$DateTime<-as.character(f2$DateTime)
+f2$DateTime<-as.POSIXct(f2$DateTime, format="%m/%d/%y %H:%M")
+f2$DateTime
+f2$`Discharge-L/s`<-as.numeric(as.character(f2$`Discharge-L/s`))
+f2$`StreamTemp-C` <-as.numeric(as.character(f2$`StreamTemp-C`))
+head(f2)
+summary(f2)
+```
+
+# Focus on summers
+```{r}
+f_summer<-f2[f2$DateTime>=as.POSIXct("2011-06-01") & f2$DateTime<=as.POSIXct("2011-08-31") & !is.na(f2$DateTime) &f2$`Discharge-L/s`>0  ,]
+head(f_summer)
+summary(f_summer)
+
+```
+
+```{r}
+p <- ggplot(f_summer, aes( DateTime  , `StreamTemp-C` ))
+p + geom_point()
+```
+
+
