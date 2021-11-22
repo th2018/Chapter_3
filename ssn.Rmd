@@ -1,7 +1,7 @@
 ---
 title: "ssn"
 author: "Tao"
-date: "10/14/2021"
+date:  "`r Sys.Date()`"
 output:
   pdf_document: default
   html_document: default
@@ -23,6 +23,7 @@ getwd()
 ```{r}
 # Create a SpatialStreamNetork object that also contains prediction sites
 mf04p <- importSSN(paste0(tempdir(),'/MiddleFork04.ssn'), predpts = "pred1km", o.write = TRUE)
+#The information contained in the netID text files is imported into an SQLite database, binaryID.db, which is stored in the .ssn directory.
 mf04p
 head(mf04p@data)
 mf04p@obspoints
