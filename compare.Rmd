@@ -1,0 +1,126 @@
+---
+title: "compare old NorWeST obs to new USGS obs"
+author: "Tao"
+date: "11/23/2021"
+output: html_document
+---
+
+https://www.fs.fed.us/rm/boise/AWAE/projects/NorWeST/downloads/ObservedStreamTemperatureMaps/170602_Salmon/NorWeST_ObservedStreamTempDailySummaries_SalmonRiverBasin_AllDays.zip
+
+```{r}
+library("tidyverse")
+# install.packages("dataRetrieval")
+library(dataRetrieval)
+# install.packages("zoo") 
+library(zoo)
+library("readxl")
+```
+
+
+```{r}
+library("foreign")
+usgs_join_NorWeST_obs<-read.dbf("C:/Users/taohuang/Documents/Tao/Data/norwest/usgs_join_NorWeST_obs.dbf")
+usgs_join_NorWeST_obs
+```
+
+```{r}
+setwd("C:/Users/taohuang/Documents/Tao/Data/norwest/All_Days_Daily_Summary")
+
+#df<-data.frame(OBSPRED_ID<- as.double(0)
+#NorWeST_ID" "SampleDate" "DailyMax"   "DailyMin"   "DailyMean"  "DailySD"    "Nobs"       "DailyRange")
+
+list.files()[1]
+
+df<-read_excel(  paste(list.files()[1],"/",list.files(list.files()[1]),sep="") )
+df<-df[,c("OBSPRED_ID", "SampleDate","DailyMax" ,"DailyMin"  ,"DailyMean", "DailyRange")]
+dim(df)
+
+for (folders in list.files()[-1])
+{
+ #print(list.files(folders))
+ # print(paste(folders,"/",list.files(folders),sep=""))
+data <- read_excel(  paste(folders,"/",list.files(folders),sep="") )
+data<-data[,c("OBSPRED_ID", "SampleDate","DailyMax" ,"DailyMin"  ,"DailyMean", "DailyRange")]
+#head(data)  
+print(data)
+df<-rbind(df,data)
+}
+dim(df)
+#my_data <- read_excel("NorWeST_ObservedStreamTemp_TempDailySummaries_EasternMontana_AllDays.xlsx")
+
+#my_data
+
+```
+
+```{r}
+usgs_join_NorWeST_obs_df<-merge(usgs_join_NorWeST_obs,df,by.x="OBSPRED_ID",by.y="OBSPRED_ID")
+usgs_join_NorWeST_obs_df
+
+```
+
+```{r}
+usgs_join_NorWeST_obs_df$STAID<-as.character(usgs_join_NorWeST_obs_df$STAID)
+
+for ( STAID in unique(usgs_join_NorWeST_obs_df$STAID)) {
+
+  siteNumber <- as.character(id) 
+  parameterCd <-  "00010"  #00060: Discharge, cubic feet per second
+  
+  plot(usgs_join_NorWeST_obs_df[usgs_join_NorWeST_obs_df$STAID==STAID,]$SampleDate,usgs_join_NorWeST_obs_df[usgs_join_NorWeST_obs_df$STAID==STAID,]$DailyMean) 
+
+  
+  
+  }
+```
+
+```{r}
+meanAugT_df<-data.frame(agency_cd= " ",site_no="", Date=as.Date("1000-01-01",format="%Y-%m-%d"),X_00010_00003=0,    X_00010_00003_cd= "",X_00060_00003=0,    X_00060_00003_cd= "",yr="",mo=0 )
+
+for (id in  unique(usgs_join_NorWeST_obs_df$STAID)) {
+
+  siteNumber<-id
+  parameterCd <- c("00010","00060") #00060: Discharge, cubic feet per second
+ ChoptankInfo <- readNWISsite(siteNumber)
+  statCd <- c("00003") # 00003	MEAN
+  startDate <- "1993-08-01"
+endDate <- "2021-09-01"
+meanT <-   readNWISdv(siteNumber, parameterCd, 
+                                 startDate, endDate, statCd=statCd)
+  if (dim(meanT )[2]>=7){
+meanT$yr<- format(meanT$Date, format = "%Y") 
+meanT$mo<-as.numeric(format(meanT$Date, format = "%m"))
+meanAugT<-meanT[meanT$mo==8,c("agency_cd","site_no","Date","X_00010_00003","X_00010_00003_cd","X_00060_00003","X_00060_00003_cd","yr","mo"  )]
+meanAugT_df <-rbind(meanAugT_df,meanAugT)
+  }
+ }
+
+```
+
+```{r}
+meanAugT_df<-meanAugT_df[meanAugT_df$mo>0 ,]
+meanAugT_df<-meanAugT_df[!is.na(meanAugT_df$X_00010_00003),]
+
+meanAugT_df$source<-"NorWeST data"
+meanAugT_df[meanAugT_df$Date>=as.Date("2016-08-01"),]$source<-"New data"
+
+for (id in unique(meanAugT_df$site_no)) {
+  plot(meanAugT_df[meanAugT_df$site_no==id,]$Date,meanAugT_df[meanAugT_df$site_no==id,]$X_00010_00003)
+  
+}
+```
+
+```{r}
+#for (id in unique(meanAugT_df$site_no)) {
+ 
+  ggplot() +
+  geom_point(data=meanAugT_df[meanAugT_df$site_no=="13092747",], aes(x=Date , y= X_00010_00003,color=source)) +ylab("Stream T (deg C)") +ggtitle("USGS 13092747")
+  #+
+#  geom_line( data=ldf , aes(x=x, y=y))+  xlab("NorWeST") + 
+ 
+#+
+#  ggtitle(  paste(      "Mean August Temperature, correlation coefficient=", cor$estimate ))
+  
+  
+#}
+```
+
