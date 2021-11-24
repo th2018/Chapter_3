@@ -1,0 +1,91 @@
+---
+title: "Untitled"
+author: "Tao"
+date:  "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+# install.packages("dataRetrieval")
+library(dataRetrieval)
+library(dplyr)
+library(lubridate)
+library(tidyverse)
+```
+
+```{r}
+ siteNumber <-  "13309220" 
+  parameterCd <-  "00060"  #00060: Discharge, cubic feet per second
+```
+
+```{r}
+ ChoptankInfo <- readNWISsite(siteNumber)
+  statCd <- c("00003") # 00003	MEAN
+  startDate <- "1974-01-01"
+endDate <- "2021-11-01"
+```
+
+```{r}
+q <-   readNWISdv(siteNumber, parameterCd, 
+                                 startDate, endDate, statCd=statCd)
+
+```
+
+```{r}
+ q$yr<-format(q$Date, format = "%Y") 
+head(q)
+```
+
+```{r}
+max_q<-q %>%
+  group_by( yr) %>%
+  summarise(max = max(X_00060_00003, na.rm=TRUE))
+```
+
+```{r}
+all_q<-merge(q,max_q,by.x="yr",by.y="yr")
+
+head(all_q)
+```
+
+```{r}
+all_q_date<-all_q[all_q$X_00060_00003==all_q$max,]
+all_q_date$yday <-  yday(all_q_date$Date)
+plot(all_q_date$yr,all_q_date$yday)
+cor.test(as.numeric(all_q_date$yr),all_q_date$yday)
+summary(lm(all_q_date$yday~as.numeric(all_q_date$yr)))
+```
+
+```{r}
+plot(q[q$yr=="1975",]$Date,q[q$yr=="1975",]$X_00060_00003)
+plot(q[q$yr=="2005",]$Date,q[q$yr=="2010",]$X_00060_00003)
+plot(q[q$yr=="2020",]$Date,q[q$yr=="2020",]$X_00060_00003)
+```
+
+```{r}
+q$yday<-yday(q$Date)
+q$yr<-as.numeric(q$yr)
+q$period<-""
+q[q$yr>=1974 &q$yr<=1981,]$period<-"1974-1981"
+q[q$yr>=1999 &q$yr<=2020,]$period<-"1999-2020"
+
+q2<-q %>%
+  group_by( period, yday) %>%
+  summarise(mean = mean(X_00060_00003, na.rm=TRUE))
+q2<-q2[!q2$period=="",]
+plot(q2$yday,q2$mean)
+plot(q2[q2$period=="1974-1981",]$yday,q2[q2$period=="1974-1981",]$mean)
+plot(q2[q2$period=="1999-2020",]$yday,q2[q2$period=="1999-2020",]$mean)
+```
+
+```{r}
+ggplot( q2, aes(x=  yday, y= mean, group= period
+               , color= period 
+               )) + 
+  geom_line()+
+  ylab("Streamflow (cfs)") + 
+  xlab("The day of the year") +
+  ggtitle(   "USGS 13309220" )
+
+```
+
