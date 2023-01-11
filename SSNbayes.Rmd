@@ -1,0 +1,17 @@
+---
+title: "SSNbayes"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+```{r}
+R.Version()
+#Rtools is a toolchain bundle used for building R packages from source (those that need compilation of C/C++ or Fortran code) and for build R itself. Rtools42 is used for R 4.2.x and has been used for R-devel, the development version of R, in revisions 81360 to 83534.
+# install.packages("rstan")
+library("rstan")
+# install.packages('SSNbayes', dependencies = T, force = T)
+library("SSNbayes")
+```
+
+https://www.kaggle.com/code/edsans/ssnbayes-tutorial
